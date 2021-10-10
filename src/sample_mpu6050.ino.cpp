@@ -1,5 +1,5 @@
-#include <arduino_common/mpu6050.h>
-#include <arduino_gear/com/wire.h>
+#include <mpu6050.h>
+#include <gwire.h>
 
 #include <Arduino.h>
 
@@ -7,8 +7,8 @@ const int ADDRESS = 0x68;
 const int SERIAL_BAUD_RATE = 115200;
 
 
-ArduinoGear::Com::Wire wire;
-ArduinoCommon::Mpu6050 mpu6050(&wire, ADDRESS);
+ArduinoGear::GWire gwire;
+ArduinoCommon::Mpu6050 mpu6050(&gwire, ADDRESS);
 ArduinoCommon::MpuReading reading;
 
 void setup() {

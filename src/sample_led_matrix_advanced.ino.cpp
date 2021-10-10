@@ -1,10 +1,10 @@
-#include <arduino_common/button.h>
-#include <arduino_common/mpu6050.h>
-#include <arduino_common/mpu_reading.h>
-#include <arduino_common/shift_register.h>
-#include <arduino_gear/com/wire.h>
-#include <arduino_gear/core/pin.h>
-#include <arduino_gear/core/system.h>
+#include <button.h>
+#include <mpu6050.h>
+#include <mpu_reading.h>
+#include <shift_register.h>
+#include <gwire.h>
+#include <pin.h>
+#include <system.h>
 
 #include <Arduino.h>
 
@@ -24,9 +24,9 @@ const int SER_IN_PIN       = 8;
 const int SRCLK_PIN        = 9;
 const int RCK_PIN          = 10;
 
-ArduinoGear::Com::Wire wire;
-ArduinoGear::Core::Pin pin;
-ArduinoGear::Core::System sys;
+ArduinoGear::GWire wire;
+ArduinoGear::Pin pin;
+ArduinoGear::System sys;
 
 ArduinoCommon::Button button(&pin, &sys, BUTTON_PIN);
 ArduinoCommon::Mpu6050 mpu6050(&wire, ADDRESS);
