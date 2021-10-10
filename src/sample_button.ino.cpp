@@ -1,14 +1,14 @@
-#include <arduino_gear/core/pin.h>
-#include <arduino_gear/core/system.h>
-#include <arduino_common/button.h>
+#include <pin.h>
+#include <system.h>
+#include <button.h>
 
 #include <Arduino.h>
 
 const uint8_t PIN_NUMBER = 5;
 const int SERIAL_BAUD_RATE = 115200;
 
-ArduinoGear::Core::Pin pin;
-ArduinoGear::Core::System sys;
+ArduinoGear::Pin pin;
+ArduinoGear::System sys;
 
 // An elaspsed of 2 seconds, only for testing purposes. Usually 0 or 100 ms should be enough.
 ArduinoCommon::Button button(&pin, &sys, PIN_NUMBER, 2000);

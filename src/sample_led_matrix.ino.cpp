@@ -1,8 +1,8 @@
-#include <arduino_common/mpu6050.h>
-#include <arduino_common/mpu_reading.h>
-#include <arduino_common/shift_register.h>
-#include <arduino_gear/com/wire.h>
-#include <arduino_gear/core/pin.h>
+#include <mpu6050.h>
+#include <mpu_reading.h>
+#include <shift_register.h>
+#include <gwire.h>
+#include <pin.h>
 
 #include <Arduino.h>
 
@@ -19,10 +19,10 @@ const int SER_IN_PIN       = 8;
 const int SRCLK_PIN        = 9;
 const int RCK_PIN          = 10;
 
-ArduinoGear::Com::Wire wire;
-ArduinoGear::Core::Pin pin;
+ArduinoGear::GWire gwire;
+ArduinoGear::Pin pin;
 
-ArduinoCommon::Mpu6050 mpu6050(&wire, ADDRESS);
+ArduinoCommon::Mpu6050 mpu6050(&gwire, ADDRESS);
 ArduinoCommon::MpuReading mpuReading;
 
 ArduinoCommon::ShiftRegister sr74hc595(&pin, DATA_PIN, CLOCK_PIN, LATCH_PIN);
