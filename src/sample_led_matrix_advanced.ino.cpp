@@ -96,63 +96,60 @@ void loop()
   // Get a reading.
   if (cc == 0) {
     mpuReading = mpu6050.getAccReading();
+
+    // Calculate row and column numbers.
+    /*
+    * This maps angle readings to row numbers. Each row is numbered from 0 to 7.
+    * The angle reading ranges from "-90" to "90".
+    *
+    * Each row covers a "22.5" (degrees / row) angle range (180 (desgrees)/ 8 (rows)).
+    *
+    * Row 7 ranges from "-90" to "-67.5".
+    * Row 0 ranges from "67.5" to "90".
+    *
+    * Now, instead of using "22.5", I use "22.625". This guarantees than "-90" and "90" are within
+    * a valid rage number. Otherwise, we'd have this:
+    *
+    *    90 / 22.5 =>  4
+    *   -90 / 22.6 => -4
+    *
+    *   The overall range of row numbers is -4, -3, -2, -1, 0, 1, 2, 3, 4, which is 9 numbers instead
+    *   of 8.
+    *
+    * Roughly, this is the mapping values:
+    *
+    *  [-90  , -67.5) => 7
+    *  [-67.5, -45  ) => 6
+    *  [-45  , -22.5) => 5
+    *  [-22.5,  0   ) => 4
+    *  [  0  , 22.5 ) => 3
+    *  [ 22.5, 45   ) => 2
+    *  [ 45  , 67.5 ) => 1
+    *  [ 67.5, 90   ) => 0
+    */
+
+    number = (mpuReading.x + 90) / 22.625;
+    rowMappingNumber = 7 - number;
+
+    number = (mpuReading.y + 90) / 22.625;
+    columnMappingNumber = 7 - number;
+
+    previousrowMappingNumber = round((1 - alpha) * rowMappingNumber + alpha * previousrowMappingNumber);
+    previouscolumnMappingNumber = round((1 - alpha) * columnMappingNumber + alpha * previouscolumnMappingNumber);
+
+    columnEncoding = row_sequences[sequence_index][previousrowMappingNumber];
+    rowEncoding = column_sequences[sequence_index][previouscolumnMappingNumber];
+
+    // Turn on / off rows and columns. Multiple rows can be on at any given time.
+    srtpic6b595.shiftOut(columnEncoding);
   }
 
   cc = (cc + 1) % 16;
 
-  // Calculate row and column numbers.
-  /*
-   * This maps angle readings to row numbers. Each row is numbered from 0 to 7.
-   * The angle reading ranges from "-90" to "90".
-   *
-   * Each row covers a "22.5" (degrees / row) angle range (180 (desgrees)/ 8 (rows)).
-   *
-   * Row 7 ranges from "-90" to "-67.5".
-   * Row 0 ranges from "67.5" to "90".
-   *
-   * Now, instead of using "22.5", I use "22.625". This guarantees than "-90" and "90" are within
-   * a valid rage number. Otherwise, we'd have this:
-   *
-   *    90 / 22.5 =>  4
-   *   -90 / 22.6 => -4
-   *
-   *   The overall range of row numbers is -4, -3, -2, -1, 0, 1, 2, 3, 4, which is 9 numbers instead
-   *   of 8.
-   *
-   * Roughly, this is the mapping values:
-   *
-   *  [-90  , -67.5) => 7
-   *  [-67.5, -45  ) => 6
-   *  [-45  , -22.5) => 5
-   *  [-22.5,  0   ) => 4
-   *  [  0  , 22.5 ) => 3
-   *  [ 22.5, 45   ) => 2
-   *  [ 45  , 67.5 ) => 1
-   *  [ 67.5, 90   ) => 0
-   */
-
-  number = (mpuReading.x + 90) / 22.625;
-  rowMappingNumber = 7 - number;
-
-  number = (mpuReading.y + 90) / 22.625;
-  columnMappingNumber = 7 - number;
-
-  previousrowMappingNumber = (int) ((1 - alpha) * rowMappingNumber + alpha * previousrowMappingNumber);  
-
-  uint8_t tmp = previouscolumnMappingNumber;
-  previouscolumnMappingNumber = (int) ((1 - alpha) * columnMappingNumber + alpha * previouscolumnMappingNumber);
-  
   if (button.has_pressed()) {
     // Change app. sequence.
     sequence_index = (sequence_index + 1) % NUM_SEQUENCES;
   }
-
-  columnEncoding = row_sequences[sequence_index][previousrowMappingNumber];
-  rowEncoding = column_sequences[sequence_index][previouscolumnMappingNumber];
-
-  // Turn on / off rows and columns. Multiple rows can be on at any given time.
-  
-  srtpic6b595.shiftOut(columnEncoding);  
 
   /*
    * Turn on/off rows.
@@ -177,7 +174,7 @@ void loop()
    *
    * Lastly, if a row happens to be off the logic moves on. As soon as one row is one, all the other
    * rows will be turned off, so there is no need to explicitely set a row off.
-   */  
+   */
   while(true) {
     i = j;
     result = rowEncoding & (1 << i);
@@ -196,5 +193,4 @@ void loop()
 
   j = (j + 1) % SIZE; // Next loop iteration will start and finish with a different rows.
   count = 0;
-  
 }
