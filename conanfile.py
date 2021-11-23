@@ -21,7 +21,7 @@ class ArduinoAppsConan(ConanFile):
     exports = "CMakeLists.txt"
     exports_sources = "src/*"
 
-    requires = "arduino_common/0.0.1", "arduino_gear/0.0.4"
+    requires = "arduino_common/0.0.1", "arduino_gear/0.0.5"
 
     def build(self):
         cmake = CMake(self)

@@ -14,5 +14,4 @@ target_sources(apps
   PUBLIC
     "${PROJECT_SOURCE_DIR}/src/sample_button.ino.cpp"
     "${PROJECT_SOURCE_DIR}/src/sample_led_matrix.ino.cpp"
-    "${PROJECT_SOURCE_DIR}/src/sample_led_matrix_advanced.ino.cpp"
     "${PROJECT_SOURCE_DIR}/src/sample_mpu6050.ino.cpp")

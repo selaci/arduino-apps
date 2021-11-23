@@ -8,27 +8,33 @@
 
 #include <Arduino.h>
 
+// #define DEBUG 0
+
 const int SERIAL_BAUD_RATE = 19200;
 const int ADDRESS          = 0x68;
 
 // Button.
-const int BUTTON_PIN       = 4;
+const int BUTTON_PIN       = 2;
 
 // 74HC595
-const int DATA_PIN         = 8;
-const int CLOCK_PIN        = 9;
-const int LATCH_PIN        = 10;
+const int DATA_PIN         = 3;
+const int CLOCK_PIN        = 5;
+const int LATCH_PIN        = 4;
 
 // TPIC6B595.
-const int SER_IN_PIN       = 13;
-const int SRCLK_PIN        = 11;
-const int RCK_PIN          = 12;
+const int SER_IN_PIN       = 6;
+const int SRCLK_PIN        = 7;
+const int RCK_PIN          = 8;
+
+const int OE1              = 11;
+const int OE2              = 10;
+const int OE3              = 9;
 
 ArduinoGear::GWire wire;
 ArduinoGear::Pin pin;
 ArduinoGear::System sys;
 
-ArduinoCommon::Button button(&pin, &sys, BUTTON_PIN);
+ArduinoCommon::Button button(&pin, &sys, BUTTON_PIN, 250);
 ArduinoCommon::Mpu6050 mpu6050(&wire, ADDRESS);
 ArduinoCommon::MpuReading mpuReading;
 
@@ -78,16 +84,39 @@ uint8_t j = 0; // A veriable that contains what row to start with.
 uint8_t count = 0;
 uint8_t result = 0;
 
-void setup()
-{
-  Serial.begin(SERIAL_BAUD_RATE);
+void setup() {
+  #ifdef DEBUG
+    Serial.begin(SERIAL_BAUD_RATE);
+  #else
+    delay(1000);
+  #endif
+
+  pinMode(A4, INPUT);
+  pinMode(A5, INPUT);
+
   mpu6050.init();
+
+  delay(1000);
 
   sr74hc595.setup();
   srtpic6b595.setup();
   button.setup();
 
-  Serial.println("Setup end.");
+  pinMode(OE1, OUTPUT);
+  pinMode(OE2, OUTPUT);
+  pinMode(OE3, OUTPUT);
+
+  analogWrite(OE1, 255);
+  analogWrite(OE2, 255);
+  analogWrite(OE3, 255);
+
+  pinMode(A1, INPUT);
+  pinMode(A2, INPUT);
+  pinMode(A3, INPUT);
+
+  #ifdef DEBUG
+    Serial.println("Setup end.");
+  #endif
 }
 
 char buff[100];
@@ -98,7 +127,37 @@ int timingCounter = 0;
 unsigned long timing = 0;
 unsigned long previousTiming = 0;
 
+int reading = 0;
+uint8_t mappedOe1 = 0;
+uint8_t mappedOe2 = 0;
+uint8_t mappedOe3 = 0;
+
 void loop() {
+
+  reading = analogRead(A1);
+  mappedOe1= map(reading, 0, 1023, 0, 255);
+
+  reading = analogRead(A2);
+  mappedOe2= map(reading, 0, 1023, 0, 255);
+
+  reading = analogRead(A3);
+  mappedOe3= map(reading, 0, 1023, 0, 255);
+
+  if (mappedOe1 < 20) { mappedOe1 = 0; }
+  else if (mappedOe1 > 235) { mappedOe1 = 255; };
+
+  if (mappedOe2 < 20) { mappedOe2 = 0; }
+  else if (mappedOe2 > 235) { mappedOe2 = 255; };
+
+  if (mappedOe3 < 20) { mappedOe3 = 0; }
+  else if (mappedOe3 > 235) { mappedOe3 = 255; };
+
+  analogWrite(OE1, mappedOe1);
+  analogWrite(OE2, mappedOe2);
+  analogWrite(OE3, mappedOe3);
+
+  button.read();
+  
   if (button.has_pressed()) {
     // Change app. sequence.
     sequence_index = (sequence_index + 1) % NUM_SEQUENCES;
@@ -211,13 +270,18 @@ void loop() {
 
   j = (j + 1) % SIZE; // Next loop iteration will start and finish with a different rows.
   count = 0;
+
+  #ifdef DEBUG
   
   timingCounter++;
 
   if (timingCounter == 1000) {
     timing = sys.millis();
     Serial.print("Avg. loop (ms): "); Serial.println((timing - previousTiming) / 1000.0);
+    sprintf(buff, "A1: %d, A2: %d, A3: %d\n", mappedOe1, mappedOe2, mappedOe3);
+    Serial.print(buff);
     previousTiming = timing;
     timingCounter = 0;    
   }
+  #endif
 }
